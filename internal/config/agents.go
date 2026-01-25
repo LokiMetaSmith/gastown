@@ -29,6 +29,8 @@ const (
 	AgentAmp AgentPreset = "amp"
 	// AgentOpenCode is OpenCode multi-model CLI.
 	AgentOpenCode AgentPreset = "opencode"
+	// AgentJules is Jules (using Gemini API).
+	AgentJules AgentPreset = "jules"
 )
 
 // AgentPresetInfo contains the configuration details for an agent preset.
@@ -122,6 +124,21 @@ var builtinPresets = map[AgentPreset]*AgentPresetInfo{
 		Command:             "gemini",
 		Args:                []string{"--approval-mode", "yolo"},
 		ProcessNames:        []string{"gemini"}, // Gemini CLI binary
+		SessionIDEnv:        "GEMINI_SESSION_ID",
+		ResumeFlag:          "--resume",
+		ResumeStyle:         "flag",
+		SupportsHooks:       true,
+		SupportsForkSession: false,
+		NonInteractive: &NonInteractiveConfig{
+			PromptFlag: "-p",
+			OutputFlag: "--output-format json",
+		},
+	},
+	AgentJules: {
+		Name:                AgentJules,
+		Command:             "gemini",
+		Args:                []string{"--approval-mode", "yolo"},
+		ProcessNames:        []string{"gemini"}, // Jules uses gemini CLI
 		SessionIDEnv:        "GEMINI_SESSION_ID",
 		ResumeFlag:          "--resume",
 		ResumeStyle:         "flag",

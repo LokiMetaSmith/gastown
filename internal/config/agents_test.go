@@ -17,7 +17,7 @@ func isClaudeCmd(cmd string) bool {
 func TestBuiltinPresets(t *testing.T) {
 	t.Parallel()
 	// Ensure all built-in presets are accessible
-	presets := []AgentPreset{AgentClaude, AgentGemini, AgentCodex, AgentCursor, AgentAuggie, AgentAmp}
+	presets := []AgentPreset{AgentClaude, AgentGemini, AgentCodex, AgentCursor, AgentAuggie, AgentAmp, AgentJules}
 
 	for _, preset := range presets {
 		info := GetAgentPreset(preset)
@@ -46,6 +46,7 @@ func TestGetAgentPresetByName(t *testing.T) {
 	}{
 		{"claude", AgentClaude, false},
 		{"gemini", AgentGemini, false},
+		{"jules", AgentJules, false},
 		{"codex", AgentCodex, false},
 		{"cursor", AgentCursor, false},
 		{"auggie", AgentAuggie, false},
@@ -79,6 +80,7 @@ func TestRuntimeConfigFromPreset(t *testing.T) {
 	}{
 		{AgentClaude, "claude"}, // Note: claude may resolve to full path
 		{AgentGemini, "gemini"},
+		{AgentJules, "gemini"},
 		{AgentCodex, "codex"},
 		{AgentCursor, "cursor-agent"},
 		{AgentAuggie, "auggie"},
@@ -125,6 +127,7 @@ func TestIsKnownPreset(t *testing.T) {
 	}{
 		{"claude", true},
 		{"gemini", true},
+		{"jules", true},
 		{"codex", true},
 		{"cursor", true},
 		{"auggie", true},
@@ -207,6 +210,7 @@ func TestAgentPresetYOLOFlags(t *testing.T) {
 	}{
 		{AgentClaude, "--dangerously-skip-permissions"},
 		{AgentGemini, "yolo"}, // Part of "--approval-mode yolo"
+		{AgentJules, "yolo"},
 		{AgentCodex, "--yolo"},
 	}
 
@@ -219,7 +223,7 @@ func TestAgentPresetYOLOFlags(t *testing.T) {
 
 			found := false
 			for _, arg := range info.Args {
-				if arg == tt.wantArg || (tt.preset == AgentGemini && arg == "yolo") {
+				if arg == tt.wantArg || ((tt.preset == AgentGemini || tt.preset == AgentJules) && arg == "yolo") {
 					found = true
 					break
 				}
@@ -290,6 +294,13 @@ func TestBuildResumeCommand(t *testing.T) {
 			contains:  []string{"gemini", "--approval-mode", "yolo", "--resume", "gemini-sess-456"},
 		},
 		{
+			name:      "jules with session",
+			agentName: "jules",
+			sessionID: "jules-sess-111",
+			wantEmpty: false,
+			contains:  []string{"gemini", "--approval-mode", "yolo", "--resume", "jules-sess-111"},
+		},
+		{
 			name:      "codex subcommand style",
 			agentName: "codex",
 			sessionID: "codex-sess-789",
@@ -338,6 +349,7 @@ func TestSupportsSessionResume(t *testing.T) {
 	}{
 		{"claude", true},
 		{"gemini", true},
+		{"jules", true},
 		{"codex", true},
 		{"cursor", true},
 		{"auggie", true},
@@ -362,6 +374,7 @@ func TestGetSessionIDEnvVar(t *testing.T) {
 	}{
 		{"claude", "CLAUDE_SESSION_ID"},
 		{"gemini", "GEMINI_SESSION_ID"},
+		{"jules", "GEMINI_SESSION_ID"},
 		{"codex", ""},    // Codex uses JSONL output instead
 		{"cursor", ""},   // Cursor uses --resume with chatId directly
 		{"auggie", ""},   // Auggie uses --resume directly
@@ -386,6 +399,7 @@ func TestGetProcessNames(t *testing.T) {
 	}{
 		{"claude", []string{"node"}},
 		{"gemini", []string{"gemini"}},
+		{"jules", []string{"gemini"}},
 		{"codex", []string{"codex"}},
 		{"cursor", []string{"cursor-agent"}},
 		{"auggie", []string{"auggie"}},
@@ -412,7 +426,7 @@ func TestGetProcessNames(t *testing.T) {
 func TestListAgentPresetsMatchesConstants(t *testing.T) {
 	t.Parallel()
 	// Ensure all AgentPreset constants are returned by ListAgentPresets
-	allConstants := []AgentPreset{AgentClaude, AgentGemini, AgentCodex, AgentCursor, AgentAuggie, AgentAmp}
+	allConstants := []AgentPreset{AgentClaude, AgentGemini, AgentCodex, AgentCursor, AgentAuggie, AgentAmp, AgentJules}
 	presets := ListAgentPresets()
 
 	// Convert to map for quick lookup
@@ -451,6 +465,11 @@ func TestAgentCommandGeneration(t *testing.T) {
 		},
 		{
 			preset:       AgentGemini,
+			wantCommand:  "gemini",
+			wantContains: []string{"--approval-mode", "yolo"},
+		},
+		{
+			preset:       AgentJules,
 			wantCommand:  "gemini",
 			wantContains: []string{"--approval-mode", "yolo"},
 		},
