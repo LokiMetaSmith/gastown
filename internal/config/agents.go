@@ -29,6 +29,8 @@ const (
 	AgentAmp AgentPreset = "amp"
 	// AgentOpenCode is OpenCode multi-model CLI.
 	AgentOpenCode AgentPreset = "opencode"
+	// AgentJules is Jules (using Jules API via gt-jules wrapper).
+	AgentJules AgentPreset = "jules"
 )
 
 // AgentPresetInfo contains the configuration details for an agent preset.
@@ -202,6 +204,21 @@ var builtinPresets = map[AgentPreset]*AgentPresetInfo{
 			Subcommand: "run",
 			OutputFlag: "--format json",
 		},
+	},
+	AgentJules: {
+		Name:    AgentJules,
+		Command: "gt-jules", // Custom wrapper
+		Args:    []string{},
+		Env: map[string]string{
+			// JULES_API_KEY must be set by user
+		},
+		ProcessNames:        []string{"gt-jules"},
+		SessionIDEnv:        "JULES_SESSION_ID", // Wrapper can use this to resume
+		ResumeFlag:          "--resume",
+		ResumeStyle:         "flag",
+		SupportsHooks:       false, // Wrapper logic, maybe supported later
+		SupportsForkSession: false,
+		NonInteractive:      nil, // TODO: Define if needed
 	},
 }
 
