@@ -29,7 +29,7 @@ const (
 	AgentAmp AgentPreset = "amp"
 	// AgentOpenCode is OpenCode multi-model CLI.
 	AgentOpenCode AgentPreset = "opencode"
-	// AgentJules is Jules (using Gemini API).
+	// AgentJules is Jules (using Jules API via gt-jules wrapper).
 	AgentJules AgentPreset = "jules"
 )
 
@@ -134,21 +134,6 @@ var builtinPresets = map[AgentPreset]*AgentPresetInfo{
 			OutputFlag: "--output-format json",
 		},
 	},
-	AgentJules: {
-		Name:                AgentJules,
-		Command:             "gemini",
-		Args:                []string{"--approval-mode", "yolo"},
-		ProcessNames:        []string{"gemini"}, // Jules uses gemini CLI
-		SessionIDEnv:        "GEMINI_SESSION_ID",
-		ResumeFlag:          "--resume",
-		ResumeStyle:         "flag",
-		SupportsHooks:       true,
-		SupportsForkSession: false,
-		NonInteractive: &NonInteractiveConfig{
-			PromptFlag: "-p",
-			OutputFlag: "--output-format json",
-		},
-	},
 	AgentCodex: {
 		Name:                AgentCodex,
 		Command:             "codex",
@@ -219,6 +204,21 @@ var builtinPresets = map[AgentPreset]*AgentPresetInfo{
 			Subcommand: "run",
 			OutputFlag: "--format json",
 		},
+	},
+	AgentJules: {
+		Name:    AgentJules,
+		Command: "gt-jules", // Custom wrapper
+		Args:    []string{},
+		Env: map[string]string{
+			// JULES_API_KEY must be set by user
+		},
+		ProcessNames:        []string{"gt-jules"},
+		SessionIDEnv:        "JULES_SESSION_ID", // Wrapper can use this to resume
+		ResumeFlag:          "--resume",
+		ResumeStyle:         "flag",
+		SupportsHooks:       false, // Wrapper logic, maybe supported later
+		SupportsForkSession: false,
+		NonInteractive:      nil, // TODO: Define if needed
 	},
 }
 

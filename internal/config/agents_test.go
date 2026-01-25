@@ -80,7 +80,7 @@ func TestRuntimeConfigFromPreset(t *testing.T) {
 	}{
 		{AgentClaude, "claude"}, // Note: claude may resolve to full path
 		{AgentGemini, "gemini"},
-		{AgentJules, "gemini"},
+		{AgentJules, "gt-jules"},
 		{AgentCodex, "codex"},
 		{AgentCursor, "cursor-agent"},
 		{AgentAuggie, "auggie"},
@@ -210,8 +210,8 @@ func TestAgentPresetYOLOFlags(t *testing.T) {
 	}{
 		{AgentClaude, "--dangerously-skip-permissions"},
 		{AgentGemini, "yolo"}, // Part of "--approval-mode yolo"
-		{AgentJules, "yolo"},
 		{AgentCodex, "--yolo"},
+		{AgentJules, ""}, // No specific YOLO args required/checked yet for wrapper
 	}
 
 	for _, tt := range tests {
@@ -221,9 +221,13 @@ func TestAgentPresetYOLOFlags(t *testing.T) {
 				t.Fatalf("preset %s not found", tt.preset)
 			}
 
+			if tt.wantArg == "" {
+				return
+			}
+
 			found := false
 			for _, arg := range info.Args {
-				if arg == tt.wantArg || ((tt.preset == AgentGemini || tt.preset == AgentJules) && arg == "yolo") {
+				if arg == tt.wantArg || (tt.preset == AgentGemini && arg == "yolo") {
 					found = true
 					break
 				}
@@ -296,9 +300,9 @@ func TestBuildResumeCommand(t *testing.T) {
 		{
 			name:      "jules with session",
 			agentName: "jules",
-			sessionID: "jules-sess-111",
+			sessionID: "jules-sess-123",
 			wantEmpty: false,
-			contains:  []string{"gemini", "--approval-mode", "yolo", "--resume", "jules-sess-111"},
+			contains:  []string{"gt-jules", "--resume", "jules-sess-123"},
 		},
 		{
 			name:      "codex subcommand style",
@@ -374,7 +378,7 @@ func TestGetSessionIDEnvVar(t *testing.T) {
 	}{
 		{"claude", "CLAUDE_SESSION_ID"},
 		{"gemini", "GEMINI_SESSION_ID"},
-		{"jules", "GEMINI_SESSION_ID"},
+		{"jules", "JULES_SESSION_ID"},
 		{"codex", ""},    // Codex uses JSONL output instead
 		{"cursor", ""},   // Cursor uses --resume with chatId directly
 		{"auggie", ""},   // Auggie uses --resume directly
@@ -399,7 +403,7 @@ func TestGetProcessNames(t *testing.T) {
 	}{
 		{"claude", []string{"node"}},
 		{"gemini", []string{"gemini"}},
-		{"jules", []string{"gemini"}},
+		{"jules", []string{"gt-jules"}},
 		{"codex", []string{"codex"}},
 		{"cursor", []string{"cursor-agent"}},
 		{"auggie", []string{"auggie"}},
@@ -470,8 +474,8 @@ func TestAgentCommandGeneration(t *testing.T) {
 		},
 		{
 			preset:       AgentJules,
-			wantCommand:  "gemini",
-			wantContains: []string{"--approval-mode", "yolo"},
+			wantCommand:  "gt-jules",
+			wantContains: []string{},
 		},
 		{
 			preset:       AgentCodex,

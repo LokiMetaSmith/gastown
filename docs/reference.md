@@ -454,7 +454,7 @@ gt config agent remove <name>     # Remove custom agent (built-ins protected)
 gt config default-agent [name]    # Get or set town default agent
 ```
 
-**Built-in agents**: `claude`, `gemini`, `codex`, `cursor`, `auggie`, `amp`, `jules`
+**Built-in agents**: `claude`, `gemini`, `codex`, `cursor`, `auggie`, `amp`, `jules` (requires `JULES_API_KEY`)
 
 **Custom agents**: Define per-town via CLI or JSON:
 ```bash
